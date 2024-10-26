@@ -1,6 +1,4 @@
 import type { NextConfig } from "next";
-import { readFileSync } from "fs";
-import { join } from "path";
 
 const nextConfig: NextConfig = {
   async headers() {
@@ -40,14 +38,6 @@ const nextConfig: NextConfig = {
         ],
       },
     ];
-  },
-  server: {
-    https: {
-      key: readFileSync(
-        join(process.cwd(), "certificates", "localhost-key.pem")
-      ),
-      cert: readFileSync(join(process.cwd(), "certificates", "localhost.pem")),
-    },
   },
 };
 
