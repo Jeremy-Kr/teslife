@@ -1,0 +1,5 @@
+export const PUSH_NOTIFICATION = {
+  SUBSCRIPTION_SUCCESS_TITLE: "구독 성공",
+  SUBSCRIPTION_SUCCESS_BODY: "푸시 알림 구독이 완료되었습니다.",
+  TESLA_NOTIFICATION_TITLE: "Tesla 알림",
+};

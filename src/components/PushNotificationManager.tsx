@@ -5,6 +5,9 @@ import {
   unsubscribeUser,
   sendNotification,
 } from "@/app/actions";
+import { PushSubscriptionData } from "@/models/notification/IPushNotificationService";
+import { ENV } from "@/config/environment";
+import { logger } from "@/utils/logger";
 
 function PushNotificationManager() {
   const [isSupported, setIsSupported] = useState(false);
@@ -31,7 +34,7 @@ function PushNotificationManager() {
       const sub = await registration.pushManager.getSubscription();
       setSubscription(sub);
     } catch (error) {
-      console.error("서비스 워커 등록 실패:", error);
+      logger.error("서비스 워커 등록 실패:", error);
       setError("서비스 워커 등록에 실패했습니다.");
     }
   }
@@ -41,12 +44,10 @@ function PushNotificationManager() {
       const registration = await navigator.serviceWorker.ready;
       const sub = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(
-          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
-        ),
+        applicationServerKey: urlBase64ToUint8Array(ENV.VAPID_PUBLIC_KEY),
       });
 
-      const subscriptionData = {
+      const subscriptionData: PushSubscriptionData = {
         endpoint: sub.endpoint,
         keys: {
           p256dh: Array.from(new Uint8Array(sub.getKey("p256dh") ?? [])),
@@ -57,13 +58,13 @@ function PushNotificationManager() {
       setSubscription(sub);
       const result = await subscribeUser(email, subscriptionData);
       if (result.success) {
-        console.log("구독 성공");
+        logger.info("구독 성공");
       } else {
-        console.error("구독 실패:", result.error);
+        logger.error("구독 실패:", result.error);
         setError(result.error || "구독에 실패했습니다.");
       }
     } catch (error) {
-      console.error("구독 중 오류 발생:", error);
+      logger.error("구독 중 오류 발생:", error);
       setError("구독 중 오류가 발생했습니다.");
     }
   }
@@ -74,13 +75,13 @@ function PushNotificationManager() {
         await subscription.unsubscribe();
         const result = await unsubscribeUser(email, subscription.endpoint);
         if (result.success) {
-          console.log("구독 취소 성공");
+          logger.info("구독 취소 성공");
           setSubscription(null);
         } else {
           throw new Error(result.error);
         }
       } catch (error) {
-        console.error("구독 취소 중 오류 발생:", error);
+        logger.error("구독 취소 중 오류 발생:", error);
         setError("구독 취소 중 오류가 발생했습니다.");
       }
     }
@@ -90,10 +91,10 @@ function PushNotificationManager() {
     if (subscription) {
       const result = await sendNotification(email, message);
       if (result.success) {
-        console.log("알림 전송 성공");
+        logger.info("알림 전송 성공");
         setMessage("");
       } else {
-        console.error("알림 전송 실패:", result.error);
+        logger.error("알림 전송 실패:", result.error);
         setError(result.error || "알림 전송에 실패했습니다.");
       }
     }
