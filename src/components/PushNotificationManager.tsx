@@ -13,6 +13,7 @@ function PushNotificationManager() {
   );
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
 
   useEffect(() => {
     if ("serviceWorker" in navigator && "PushManager" in window) {
@@ -54,7 +55,7 @@ function PushNotificationManager() {
       };
 
       setSubscription(sub);
-      const result = await subscribeUser(subscriptionData);
+      const result = await subscribeUser(email, subscriptionData);
       if (result.success) {
         console.log("구독 성공");
       } else {
@@ -71,10 +72,12 @@ function PushNotificationManager() {
     if (subscription) {
       try {
         await subscription.unsubscribe();
-        setSubscription(null);
-        const result = await unsubscribeUser();
+        const result = await unsubscribeUser(email, subscription.endpoint);
         if (result.success) {
           console.log("구독 취소 성공");
+          setSubscription(null);
+        } else {
+          throw new Error(result.error);
         }
       } catch (error) {
         console.error("구독 취소 중 오류 발생:", error);
@@ -85,7 +88,7 @@ function PushNotificationManager() {
 
   async function sendTestNotification() {
     if (subscription) {
-      const result = await sendNotification(message);
+      const result = await sendNotification(email, message);
       if (result.success) {
         console.log("알림 전송 성공");
         setMessage("");
@@ -104,6 +107,12 @@ function PushNotificationManager() {
     <div>
       <h3>푸시 알림</h3>
       {error && <p style={{ color: "red" }}>{error}</p>}
+      <input
+        type="email"
+        placeholder="이메일 주소"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
       {subscription ? (
         <>
           <p>푸시 알림 구독 중입니다.</p>
